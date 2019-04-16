@@ -1,0 +1,16 @@
+\section{Introduction}
+
+\subsection{Background and Motivation}
+Similarity measure plays a key role in many areas such as data mining and machine learning. Similarity indicates the correlation level between discrete objects in the same sample space. 
+
+[data mining & machine learning 中相似度可以用来做什么] 
+
+In the case of machine learning, for example, similarity demonstrates the distance between each pair of points in an n-dimension space. In existing methodologies, Euclidean distance serves as the most popular criterion of similarity between samples. However, Euclidean measurement falls short of achieving optimal partition result in high-dimensional spaces. Previous work proposed a series of methods for mapping samples to an n-dimension feature space and applying the Euclidean distance as a kernel function, which includes kernel PCA, kernel k-means, kernel SVM etc.[] Finding a more reliable measurement of similarity, in a sense, is to find a kernel function with higher accuracy and computational efficiency.
+
+A novel approach is Random Projection Forest (RP Forest), which features in outstanding performance in computational efficiency and low dependency on priori assumptions. The similarity between discrete samples is measured by a similarity matrix filled along with the forest generation process. An RP Forest is consisted of a number of RP trees displaying different partitions of the original sample set. In a certain RP tree, each node with size above a lower bound will be split into two according to given rules that samples in the same child node are believed to have higher similarity than those are split apart. Ultimately, all pairs remaining in identical leaf nodes are recorded and added to the similarity matrix. After normalization, the each element in the matrix marks the similarity of corresponding samples in the original set.
+However, 
+
+Our main contributions are as follows. First, we designed a new splitting strategy named as KRandom splitting. 
+
+%The purpose of the similarity measure is to give a way to define how 'similar' between different samples in the same sample space. Similarity measure play a key role in many areas such as data mining and machine learning.
+%In machine learning, Euclidean distance is often used as a measure of similarity between samples, but Euclidean in high-dimensional space often fails to achieve the desired effect. Previous work proposed a series of methods for mapping samples to feature spaces and using the Euclidean distance of the feature space as a kernel function, such as kernel PCA, kernel k-means, kernel SVM etc. Finding a valid kernel function in a sense is to find a reliable measure of similarity.

@@ -1,0 +1,60 @@
+\section{Mathmatica Analysis}
+
+The growth of the individual trees in \textit{K-Random rpForests} involves randomness both in split direction and split thresholds. A natural concern of the \textit{K-Random rpForests} would be whether the distances in the similarity kernel maintain the characteristics of the real space. In this section, we will prove that during the growth of the \textit{K-Random rpForests}, the far-away points in the real space will be separated with high probability while the closed ones will not be separated with high probability.
+
+Recall that during each split of a node, we will choose k separation points randomly in the range of the projection values. As the behaviour of the separation depends on this range, we will first analyze the characteristic of it. Similar to [..], we introduce the \textit{neck size} of a set as follows.
+
+\textbf{Definition.}\textit{
+    Let $S$ be a set of points. Define its neck size as the following
+    \begin{equation}
+    \nonumber
+        \rho(S) = \sup_{\vec{r}}\sup_{x_1, x_2 \in S}\{|P_{\vec{r}}(x_1) - P_{\vec{r}}(x_2)|\}
+    \end{equation}
+    where $\vec{r}$ is the split direction and $P$ is the projection function.
+}
+	%For each time point $j \in [E]$, let $J_k[j]$ be the subset of items such that each item's current estimated frequency is larger than or equal to $k$. Formally, $J_k[j] = \{e_{\beta_i} | \hat{f}_{\beta_i}[j] \geqslant k, i \in [N], k \in Z^{+} \}$. 
+
+The \textit{neck size} describe the boundary of a set of points. We assume that during the growth of a tree, the \textit{neck size} of each tree node will shrink by a factor $\gamma \in [\gamma_1, \gamma_2] \subset (0, 1)$. We now state that the points with large distance in the real space will be separated with high probability as the following.
+
+\textbf{Theorem.}\textit{
+    Let $S$ be a set of points on which the K-Random Algorithm runs. Given two point $A, B \in S$, the probability of the two point separated in one cutting satisfies
+    \begin{equation}
+        P(A\ and\ B\ separated) \ge 1 - \frac{\rho(S)}{d(k+1)} \cdot (1 - (1 - \frac{d}{\rho(S)})^{k+1})
+    \end{equation}
+    where $d$ is the distance of point $A, B$ in the real space.
+}
+
+
+\textbf{Proof.} Without lost of generality, we focus on the 2-dimensional case. Let the split direction be $\vec{r}$, and the angle between $\vec{r}$ and $\vec{AB}$ be $\theta$. It is obvious that $\theta \in [0, \pi/2)$. Because the relationship between $\theta$ and $\vec{r}$ is one-to-one correspondence given a fixed $\vec{AB}$, to randomly choose a split direction vector is to randomly choose an angle in $[0, \pi/2)$. Therefore, we have $P(\vec{r}) = 2/\pi$.
+
+Similar to \textit{neck size}, we denote the boundary of the set under this fixed $\vec{r}$ as
+\begin{equation}
+\nonumber
+    L(S, \vec{r}) = \sup_{x_1, x_2 \in S}\{|P_{\vec{r}}(x_1) - P_{\vec{r}}(x_2)|\}
+\end{equation}
+%Obviously, $L(S, \vec{r}) \le \rho(S)$.
+
+After the projection, we can imagine that all points locate on a line segment with length $L(S, \vec{r})$, on which the k split points will be chosen. The two points of interest, A and B, have the distance $|\vec{AB}|cos(\theta)$ on the line segment. If at least one split point locates between A and B on the line segment, A and B will be separated in this cutting. Therefore, we have
+
+\begin{equation}
+\nonumber
+    P(A\ and\ B\ separated\ |\ \vec{r}) = 1 - (1 - \frac{d\ cos(\theta)}{L(S, \vec{r})})^{k}
+\end{equation}
+
+Eventually, we calculate the probability in general
+
+\begin{align}
+\nonumber
+    P(A\ and\ B\ separated) & = \int_{\vec{r}} P(A\ and\ B\ separated\ |\ \vec{r}) \cdot P(\vec{r}) \ d\vec{r}\\
+\nonumber
+    & = \int_{0}^{\frac{\pi}{2}} (1 - (1 - \frac{d\ cos(\theta)}{L(S, \vec{r})})^{k}) \cdot \frac{2}{\pi} \ d\vec{r}\\
+\nonumber
+    & \ge \int_{0}^{\frac{\pi}{2}} (1 - (1 - \frac{d\ cos(\theta)}{\rho(S)})^{k}) \cdot \frac{2}{\pi} \ d\vec{r}\\
+    & = 1 - \frac{2}{\pi} \int_{0}^{\frac{\pi}{2}} (1 - \frac{d\ cos(\theta)}{\rho})^{k} \ d\vec{r}\\
+\nonumber
+    & = 1 - \frac{2}{\pi} \int_{-\frac{\pi}{2}}^{0} (1 + \frac{d\ sin(\theta)}{\rho})^{k} \ d\vec{r}\\
+    & \ge 1 - \frac{2}{\pi} \int_{-\frac{\pi}{2}}^{0} (1 + \frac{d\ (\frac{2}{\pi}) \theta}{\rho})^{k} \ d\vec{r}\\
+\nonumber
+    & = 1 - \frac{\rho}{d} \cdot \frac{1}{k+1} \cdot (1 - (1 - \frac{d}{\rho})^{k+1})
+\end{align}
+Since equation (2), we use $\rho$ to replace $\rho(S)$ for concise purpose. Equation (3) use the lemma: $sin(\theta) \le 2/\pi \cdot \theta$ when $\theta \in [-\pi/2, 0]$.

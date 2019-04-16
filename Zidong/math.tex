@@ -1,0 +1,73 @@
+\section{Mathmatica Analysis}
+\newtheorem{defi}{Definition}
+\newtheorem{thm}{Theorem}
+%\newtheorem{neck size}{Definition}
+
+The growth of the individual trees in \textit{K-Random rpForests} involves randomness both in split direction and split thresholds. A natural concern of the \textit{K-Random rpForests} would be whether the distances in the similarity kernel maintain the characteristics of the real space. In this section, we will prove that during the growth of the \textit{K-Random rpForests}, the far-away points in the real space will be separated with high probability while the closed ones will not be separated with high probability.
+
+Recall that during each split of a node, we will choose k separation points randomly in the range of the projection values. As the behaviour of the separation depends on this range, we will first analyze the characteristic of it. Similar to [..], we introduce the \textit{neck size} of a set as follows.
+
+
+\begin{defi}
+    Let $\mathcal{S}$ be a set of points. Define its neck size as the following
+    \begin{equation}
+    \nonumber
+        \rho(\mathcal{S}) = \sup_{\mathbf{d} \in \mathcal{I}}\sup_{x_1, x_2 \in \mathcal{S}}\{|P_{\mathbf{d}}(x_1) - P_{\mathbf{d}}(x_2)|\}
+    \end{equation}
+    where $\mathcal{I}$ is the set of split direction vectors, i.e.,  $\mathcal{I} = \{ \mathbf{d} | \mathbf{d} \in \mathbb{R}^n\ \wedge \|\mathbf{d}\| = 1 \}$, and $P$ is the projection function.
+\end{defi}
+	%For each time point $j \in [E]$, let $J_k[j]$ be the subset of items such that each item's current estimated frequency is larger than or equal to $k$. Formally, $J_k[j] = \{e_{\beta_i} | \hat{f}_{\beta_i}[j] \geqslant k, i \in [N], k \in Z^{+} \}$. 
+
+The \textit{neck size} describe the boundary of a set of points. We assume that during the growth of a tree, the \textit{neck size} of each tree node will shrink by a factor $\gamma \in [\gamma_1, \gamma_2] \subset (0, 1)$. We now state that the points with large distance in the real space will be separated with high probability as the following.
+
+\begin{thm}
+    Let $\mathcal{S}$ be a set of points on which the K-Random Algorithm runs. Given two point $A, B \in \mathcal{S}$, the probability of the two point separated in one cutting satisfies
+    \begin{equation}
+    \nonumber
+        P(A\ and\ B\ separated) \ge 1 - \frac{\rho(\mathcal{S})}{l \cdot (k+1)} \cdot (1 - (1 - \frac{l}{\rho(\mathcal{S})})^{k+1})
+    \end{equation}
+    where $l$ is the distance of point $A, B$ in $\mathbb{R}^n$, i.e.,\ $l = \|\mathbf{AB}\|$.
+\end{thm}
+
+\textbf{Proof.} Without lost of generality, we focus on the 2-dimensional case. Let the split direction be $\mathbf{d}$, and the angle between $\mathbf{d}$ and $\mathbf{AB}$ be $\theta$. It is obvious that $\theta \in [0, \pi/2]$. Because the relationship between $\theta$ and $\mathbf{d}$ is one-to-one correspondence once given a fixed $\mathbf{AB}$, to randomly choose a split direction vector is to randomly choose an angle in $[0, \pi/2]$. Therefore, we have $P(\mathbf{d}) = 2/\pi$.
+
+Similar to \textit{neck size}, we denote the boundary of the set under this fixed $\mathbf{d}$ as
+\begin{equation}
+\nonumber
+    L(\mathcal{S}, \mathbf{d}) = \sup_{x_1, x_2 \in \mathcal{S}}\{|P_{\mathbf{d}}(x_1) - P_{\mathbf{d}}(x_2)|\}
+\end{equation}
+%Obviously, $L(S, \mathbf{d}) \le \rho(S)$.
+
+After the projection, we can imagine that all points locate on a line segment with length $L(\mathcal{S}, \mathbf{d})$, on which the k split points will be chosen. The two points of interest, A and B, have the distance $l cos(\theta)$ on the line segment. If at least one split point locates between A and B on the line segment, A and B will be separated in this cutting. Therefore, we have
+
+\begin{equation}
+\nonumber
+    P(A\ and\ B\ separated\ |\ \mathbf{d}) = 1 - (1 - \frac{l\ cos(\theta)}{L(\mathcal{S}, \mathbf{d})})^{k}
+\end{equation}
+
+Eventually, we calculate the probability in general
+
+\begin{align}
+\nonumber
+    P(A\ and\ B\ separated) & = \int_{\mathbf{d} \in \mathcal{I}} P(A\ and\ B\ separated\ |\ \mathbf{d}) \cdot P(\mathbf{d}) \ \ d\ \mathbf{d}\\
+\nonumber
+    & = \int_{0}^{\frac{\pi}{2}} (1 - (1 - \frac{l\ cos(\theta)}{L(\mathcal{S}, \mathbf{d})})^{k}) \cdot \frac{2}{\pi} \ d\theta\\
+\nonumber
+    & \ge \int_{0}^{\frac{\pi}{2}} (1 - (1 - \frac{l\ cos(\theta)}{\rho(\mathcal{S})})^{k}) \cdot \frac{2}{\pi} \ d\theta\\
+    & = 1 - \frac{2}{\pi} \int_{0}^{\frac{\pi}{2}} (1 - \frac{l\ cos(\theta)}{\rho})^{k} \ d\theta \label{eq:1} \\
+\nonumber
+    & = 1 - \frac{2}{\pi} \int_{-\frac{\pi}{2}}^{0} (1 + \frac{l\ sin(\theta)}{\rho})^{k} \ d\theta\\
+    & \ge 1 - \frac{2}{\pi} \int_{-\frac{\pi}{2}}^{0} (1 + \frac{l\ (\frac{2}{\pi}) \theta}{\rho})^{k} \ d\theta \label{eq:2}\\
+\nonumber
+    & = 1 - \frac{\rho}{l} \cdot \frac{1}{k+1} \cdot (1 - (1 - \frac{l}{\rho})^{k+1})
+\end{align}
+Since equation \ref{eq:1}, we use $\rho$ to replace $\rho(\mathcal{S})$ for concise purpose. Equation \ref{eq:2} use the lemma: $sin(\theta) \le 2/\pi \cdot \theta$ when $\theta \in [-\pi/2, 0]$.
+
+\begin{thm}
+    Let $\mathcal{S}$ be a set of points on which the K-Random Algorithm runs. Given two point $A, B \in \mathcal{S}$, the probability of the two point separated in one cutting satisfies
+    \begin{equation}
+    \nonumber
+        P(A\ and\ B\ separated) \ge 1 - \frac{\rho(\mathcal{S})}{l \cdot (k+1)} \cdot (1 - (1 - \frac{l}{\rho(\mathcal{S})})^{k+1})
+    \end{equation}
+    where $l$ is the distance of point $A, B$ in $\mathbb{R}^n$, i.e.,\ $l = \|\mathbf{AB}\|$.
+\end{thm}

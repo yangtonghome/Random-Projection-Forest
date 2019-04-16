@@ -1,0 +1,130 @@
+\section{Algorithm}
+The most critical disadvantage of naive RP tree is that if the imbalance of the tree results in a large depth, a large number of inner product operations can lead to high computational complexity. 
+The key idea of our proposed Fast and Stable Random Projection Forest (FS-RPF) is to transform the binary tree into a general tree. At the cost of increasing the complexity of the division of a single node, the number of inner product operations required is greatly reduced.
+We can prove that using our method, we can optimize the worst complexity of constructing a single random projection tree from $O(n^2\cdot d)$ to $O(n\log n\cdot d)$.
+
+\subsection{FS-RPF Basics Version}
+We first describe the basic version of the FS-RPF algorithm. We use the FS-RPF algorithm to construct a random projection forest. Each tree in the forest is an independent random project tree. 
+Each RP tree is a partition of all samples $\mathcal{S}_r$. At the beginning, the root node of the tree contains all the samples. We divide these samples into $K$ parts according to the division rule, where the parameter $K$ is a value determined during the division process. $K$ child nodes are extended from the root node and each child node contains a part of samples. Then use the same strategy to build the subtree from the child node until the node meets the stop condition.
+
+Now we will show the division rule used by the basic version. Suppose the sample set contained in the node $v$ of the tree we are dividing is $\mathcal{S}_v$, and each of theses samples can be thought of as a vector in space $\mathbb{R}^n$. Suppose again that the depth of the tree node we are dealing with is $d_v$, where the depth of the root node $r$ is $d_r=0$.
+
+We start with an empty set $\mathcal{D}=\emptyset$ and a queue $\mathcal{Q}=\{\mathcal{S}_v\}$, each time we take an elements $\mathcal{S}'$ in the head of the queue $\mathcal{Q}$, which is a subset of the sample set $\mathcal{S}_v$. If the size of this subset $|\mathcal{S}'|$ is less than the threshold $\left\lceil|\mathcal{S}_r|/2^{d_v}\right\rceil$, then $\mathcal{S}'$ is added to the set $\mathcal{D}$.
+Otherwise we randomly and uniformly select a unit direction vector $\mathbf{d}$ from $\mathbb{R}^n$, and project all the samples in the subset $\mathcal{S}'$ onto this direction vector to calculate the projection value set $\mathcal{P_{S'}}=\{x\cdot\mathbf{d}~|~x\in\mathcal{S}'\}$. We randomly and uniformly select a division threshold $c$ from $\min(\mathcal{P_{S'}})$ to $\max(\mathcal{P_{S'}})$ in $\mathbb{R}$, and divide the subset $\mathcal{S}'$ into two disjoint sets $\mathcal{S}_1$ and $\mathcal{S}_2$, where $\mathcal{S}_1=\{x~|~x\in\mathcal{S}_V~\texttt{and}~x\cdot\mathbf{d}\leqslant c\}$ and $\mathcal{S}_2=\{x~|~x\in\mathcal{S}_V~\texttt{and}~x\cdot\mathbf{d}>c\}$. 
+Then we add two new set $\mathcal{S}_1$ and $\mathcal{S}_2$ to the queue $\mathcal{Q}$. This process is repeated until the queue $\mathcal{Q}$ becomes an empty set.
+Once we have the set $\mathcal{D}$, a partition for the sample set $\mathcal{S}_v$. We can build $|\mathcal{D}|$ child nodes and recursively construct the RP tree.
+
+We show our algorithm more clearly through pseudo code. The routine \textbf{FS-RPF} constructs a RP forest containing $T$ RP trees according to the sample set $\mathcal{S}_r$, and sets the stop condition to be that the number of samples include in the node is $\leqslant M$. The routine \textbf{DIVIDE SAMPLE SET} gives the basic version of the algorithm for dividing the sample set $\mathcal{S}_v$ of nodes at depth $d_v$.
+
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\caption{Divide Sample Set($\mathcal{S}_v$, $d_v$)}
+\Require $\mathcal{S}_v$: Sample set to be divided, $d_V$: Depth of the node.
+\Ensure $\mathcal{D}$: A partition of the sample set $\mathcal{S}_v$.
+
+\State Initialize $\mathcal{D}\gets\emptyset$;
+\State Initialize $\mathcal{Q}\gets\{\mathcal{S}_v\}$;
+
+\Repeat 
+\State Select $\mathcal{S}'\in\mathcal{Q}$ and update $\mathcal{Q}\gets\mathcal{Q}-\{\mathcal{S}'\}$;
+\If {$|\mathcal{S}'|\leqslant\left\lceil\frac{|\mathcal{S}_r|}{2^{d_v}}\right\rceil$}
+\State Update $\mathcal{D}\gets\mathcal{D}\cup\{\mathcal{S}'\}$;
+\Else 
+\State Randomly and uniformly select $\mathbf{d}\in\mathbb{R}^n$ and $\lVert\mathbf{d}\rVert=1$.
+\State Project the samples in $\mathcal{S}'$ onto $\mathbf{d}$, $\mathcal{P_{S'}}\gets\{x\cdot\mathbf{d}~|~x\in\mathcal{S}'\}$;
+\State Randomly and uniformly select $c\in(\min(\mathcal{P_{S'}}), \max(\mathcal{P_{S'}}))\subset\mathbb{R}$;
+\State Set $\mathcal{S}_1\gets\{x~|~x\in\mathcal{S}_v~\texttt{and}~x\cdot\mathbf{d}\leqslant c\}$;
+\State Set $\mathcal{S}_2\gets\{x~|~x\in\mathcal{S}_v~\texttt{and}~x\cdot\mathbf{d}> c\}$;
+\State Update $\mathcal{Q}\gets\mathcal{Q}\cup\{\mathcal{S}_1,\mathcal{S}_2\}$;
+\EndIf
+\Until{$\mathcal{Q}=\emptyset$}
+\State\Return $\mathcal{D}$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{algorithmic}
+\caption{FS-RPF($\mathcal{S}_r$, $T$, $M$)}
+\Require $\mathcal{S}_r$: Sample set, $T$: Number of trees in the forest, $M$: Maximum number of samples for the stop condition.
+\Ensure $\mathcal{F}$: Random Projection Forest.
+
+\State Initialize $\mathcal{F}\gets\emptyset$;
+
+\For {$i\gets1$ to $T$}
+\State Let $r$ be root node of the $i$-th tree $\mathcal{T}_i$;
+\State Set $r.\mathcal{S}\gets\mathcal{S}_r$ and $r.d\gets0$;
+\State Initialize active node set $\mathcal{A}\gets\{r\}$;
+\Repeat
+\State Select an active node $v\in\mathcal{A}$ and update $\mathcal{A}=\mathcal{A}-\{v\}$;
+\If {$|v.\mathcal{S}|>M$}
+\State Skip this loop;
+\EndIf
+\State Set $\mathcal{D}\gets$ \Call{Divide Sample Set}{$v.\mathcal{S}$, $v.d$};
+\For {$\mathcal{S}_i\in\mathcal{D}$}
+\State Let $v_i$ be $i$-th child of $v$;
+\State Set $v_i.\mathcal{S}\gets\mathcal{S}_i$ and $v_i.d\gets v.d+1$;
+\State Update $\mathcal{A}\gets\mathcal{A}\cup\{v_i\}$;
+\EndFor
+\Until{$\mathcal{A}=\emptyset$}
+\State Update $\mathcal{F}=\mathcal{F}\cup\{\mathcal{T}_i\}$;
+\EndFor
+\State \Return $\mathcal{F}$;
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Faster and More Streamlined Version}
+In the previous section we described the basic version of our algorithm FS-RPF, in the division rule used by the basic version, we continually randomly divide the sample set contained in a node until the size of each subset is smaller than our expected threshold.
+However, if the division is very unbalanced, then the division of the sample set will take a lot of time, It is easy to see that the total time required to divide the sample set when constructing a tree is $O(n^2)$.
+
+In order to speed up the process of dividing the sample set, we no longer divide one set into two, but divide it directly into K parts. 
+Suppose the sample set contained in the node $v$ of the tree we are dividing is $\mathcal{S}_v$, and the depth of the this node is $d_v$.
+To determine how many subsets we need to divide this set $\mathcal{S}$ into, we first think of a perfectly balanced binary tree. The node of this balanced tree with a depth of $d_v+1$ should contain exactly $\lfloor|\mathcal{S}_r|/2^{d_v+1}\rfloor$ or $\lceil|\mathcal{S}_r|/2^{d_v+1}\rceil$ samples. 
+So in order to get as close as possible to the balanced binary tree, we hope that each child of node $v$ also contains $|\mathcal{S}_r|/2^{d_v+1}$ samples, so that the next layer of the tree will be rebalanced. 
+Based on this assumption, we set $K_v=\lceil|\mathcal{S}_v|/(|\mathcal{S}_r|/2^{d_v+1})\rceil=\lceil2^{d_v+1}|\mathcal{S}_v|/|\mathcal{S}_r|\rceil$, so that we have the expected number of samples for each child node to be $\mathbb{E}=|\mathcal{S}_v|/K_v=|\mathcal{S}_r|/2^{d_v+1}$.
+
+In term of implementation, we still randomly and uniformly choose a unit direction vector $\mathbf{d}$, calculate the projection value set $\mathcal{P}_{\mathcal{S}}$, and choose $K_v-1$ division thresholds $c_1,\cdots,c_{K_v-1}$ from $(\min(\mathcal{P}_{\mathcal{S}_v}),\max(\mathcal{P}_{\mathcal{S}_v}))$. Then we can get $K_v$ subsets $\mathcal{S}_i=\{x~|~x\in\mathcal{S}_v~\texttt{and}~c_{i-1}\leqslant x\cdot\mathbf{d}<c_i\}$ where we define $c_0=\min(\mathcal{P}_{\mathcal{S}_v})$ and $c_{K_v}=\max(\mathcal{P}_{\mathcal{S}_v})+\varepsilon$.
+
+We also give a simple pseudo code description for this optimized version.
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\caption{Divide Sample Set($\mathcal{S}_v$, $d_v$)}
+\Require $\mathcal{S}_v$: Sample set to be divided, $d_V$: Depth of the node.
+\Ensure $\mathcal{D}$: A partition of the sample set $\mathcal{S}_v$.
+
+\State Randomly and uniformly select $\mathbf{d}\in\mathbb{R}^n$ and $\lVert\mathbf{d}\rVert=1$.
+\State Project the samples in $\mathcal{S}_v$ onto $\mathbf{d}$, $\mathcal{P}_{\mathcal{S}_v}\gets\{x\cdot\mathbf{d}~|~x\in\mathcal{S}_v\}$;
+
+\State Set $K_v\gets\lceil2^{d_v+1}|\mathcal{S}_v|/|\mathcal{S}_r|\rceil$;
+\State Set $c_0\gets\min(\mathcal{P}_{\mathcal{S}_v})$ and $c_{K_v}\gets\max(\mathcal{P}_{\mathcal{S}_v})+\epsilon$;
+
+\State Randomly and uniformly select $c_1,\cdots,c_{K_v-1}\in(\min(\mathcal{P}_{\mathcal{S}_v}), \max(\mathcal{P}_{\mathcal{S}_v}))\subset\mathbb{R}$;
+
+\For {$i\gets1$ to $K_v$}
+\State Set $\mathcal{S}_i\gets\{x~|~x\in\mathcal{S}_v~\texttt{and}~c_{i-1}\leqslant x\cdot\mathbf{d}<c_i\}$;
+\State UPdate $\mathcal{D}=\mathcal{D}\cup\{\mathcal{S}_i\}$;
+\EndFor
+\State\Return $\mathcal{D}$
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Generating similarity kernel}
+It can be intuitively felt that if two samples are grouped in the same leaf node in a random projection tree, then the two samples have similarities to some extend. 
+Based on this intuitiveness, we can calculate the similarity between two samples. Assuming that the RP forest $\mathcal{F}$ we constructed has T independent RP trees $\mathcal{T}_i$, then we define the similarity of the two samples $x_1$ and $x_2$ as $|\{T_i~|~T_i\in\mathcal{F}~\texttt{and}~x_1,x_2~\texttt{are in the same leaf node in }~\mathcal{T}_i\}|/T$.
+
+Now we make a brief analysis of the similarity calculated in this way, assuming we have $N=|\mathcal{S}_r|$ samples and the stop condition $M=\alpha N$. Then in a projection tree we will calculate the similarity between the most $\alpha N^2$ pairs of samples. However, we have a total of $N^2$ pairs of samples, so we get a similarity density of about $\alpha$. 
+That is to say, if the depth of the RP tree is large, for example, the average depth is 10, the corresponding stop condition $\alpha$ is about $2^{-10}\approx 0.001$, which is too sparse for describing the relationship between samples.
+
+We call the similarity obtained by this method \texttt{sparse similarity}. In order to use this \texttt{sparse similarity}, we need to make a trade-off between the average depth of the RP tree, that is, the degree of detailing the division of the samples, and the density of the similarity obtained.
+
+In order to avoid this trade-off, we propose a new method of calculating similarity, called \texttt{dense similarity}. 
+We still think that the samples that are divided into same leaf node in a RP tree have the highest similarity, but for samples that are divided into different leaf nodes, we still need to treat them differently.
+In an extreme case, the samples $x_1$ and $x_2$ are grouped in different child at the root of the tree, but the samples $x_1$ and $x_3$ are in the same node until the penultimate layer of the tree.
+In order to assign a reasonable similarity to the two pairs of samples, we consider the distance between the leaf nodes they are in. 
+Let $L(x)$ denote the leaf node where sample $x$ is located, and $D(u,v)$ denote the distance of leaf nodes $u$ and $v$ on the tree. Then we have $D(L(x_1),L(x_2))$ much larger than $D(L(x_1),L(x_3))$.
+
+Based on this observation, we define \texttt{dense similarity}. Let $L_{\mathcal{T}_i}(x)$ denote the leaf node where sample $x$ is located in RP tree $\mathcal{T}_i$, and $D_{\mathcal{T}_i}(u,v)$ denote the distance of leaf nodes $u$ and $v$ on the RP tree $\mathcal{T}_i$. Then similarity of two samples $x_1$ and $x_2$ is $S(x_1,x_2)=\frac{1}{T}\sum_{i=1}^T\beta^{D_{\mathcal{T}_i}(L_{\mathcal{T}_i}(x_1),L_{\mathcal{T}_i}(x_2))}$, where $\beta<1$ is a constant.
